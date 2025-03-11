@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedicoAI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://via.placeholder.com/1920x1080/e6f7ff/ffffff?text=Medical+Background');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            width: 1200px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-section {
+            flex: 3;
+            padding: 20px;
+            border-right: 1px solid rgba(37, 99, 235, 0.1);
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.95));
+        }
+
+        .chat-header {
+            padding: 15px;
+            border-bottom: 2px solid rgba(37, 99, 235, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(37, 99, 235, 0.05);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .chat-title {
+            font-size: 26px;
+            color: #2563eb;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-title:before {
+            content: '⚕';
+            font-size: 24px;
+        }
+
+        .clear-chat-button {
+            padding: 8px 16px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+        }
+
+        .clear-chat-button:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #2563eb #f0f2f5;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f0f2f5;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            max-width: 80%;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.assistant {
+            margin-right: auto;
+        }
+
+        .message.user {
+            margin-left: auto;
+        }
+
+        .message-content {
+            padding: 15px 20px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .assistant .message-content {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #1a1a1a;
+            border-bottom-left-radius: 5px;
+        }
+
+        .user .message-content {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .input-section {
+            padding: 20px;
+            border-top: 2px solid rgba(37, 99, 235, 0.1);
+            background: rgba(37, 99, 235, 0.05);
+            border-radius: 12px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 12px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid rgba(37, 99, 235, 0.2);
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .robot-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            position: relative;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .robot {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            margin-bottom: 20px;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .robot.greeting {
+            animation: greetingAnimation 2s ease-in-out;
+        }
+
+        @keyframes greetingAnimation {
+            0% { transform: translateX(200px); }
+            40% { transform: translateX(0); }
+            60% { transform: translateX(0); }
+            100% { transform: translateX(0); }
+        }
+
+        .head {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 60px;
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .face {
+            width: 80px;
+            height: 80px;
+            background: #1a1a1a;
+            border-radius: 15px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            overflow: hidden;
+        }
+
+        .eyes {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            position: relative;
+            top: 10px;
+        }
+
+        .eye {
+            width: 8px;
+            height: 20px;
+            background: #60a5fa;
+            border-radius: 4px;
+            animation: blink 3s infinite;
+        }
+
+        @keyframes blink {
+            0%, 96%, 98% { transform: scaleY(1); }
+            97% { transform: scaleY(0.1); }
+        }
+
+        .smile {
+            width: 30px;
+            height: 8px;
+            background: #60a5fa;
+            border-radius: 4px;
+            position: absolute;
+            bottom: 15px;
+            left: 25px;
+            transition: all 0.3s;
+        }
+
+        .robot.talking .head {
+            animation: robotTalk 0.5s ease-in-out infinite;
+        }
+
+        .robot.talking .smile {
+            animation: talk 0.3s infinite;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .controls button {
+            min-width: 80px;
+        }
+
+        @keyframes robotTalk {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes talk {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.6); }
+        }
+
+        .greeting-bubble {
+            position: absolute;
+            top: 40px;
+            right: 220px;
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: bubbleAppear 1s ease-out forwards;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes bubbleAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-section">
+            <div class="chat-header">
+                <div class="chat-title">MedicoAI Assistant</div>
+                <button class="clear-chat-button" onclick="clearChat()">Clear Chat</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Initial message removed -->
+            </div>
+            <div class="input-section">
+                <div class="input-area">
+                    <input type="text" id="userInput" placeholder="Ask a question related to the images...">
+                    <button onclick="sendMessage()" id="sendButton">Send</button>
+                    <button onclick="startVoiceInput()" id="voiceButton">🎤</button>
+                    <input type="file" id="imageInput" accept="image/*" multiple onchange="handleImageUpload()" style="display: none;">
+                    <button onclick="document.getElementById('imageInput').click()">Upload Images</button>
+                </div>
+            </div>
+        </div>
+        <div class="robot-section">
+            <div class="robot" id="robot">
+                <div class="head">
+                    <div class="face">
+                        <div class="eyes">
+                            <div class="eye"></div>
+                            <div class="eye"></div>
+                        </div>
+                        <div class="smile"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls">
+                <button onclick="playLastResponse()" id="playButton" disabled>Play</button>
+                <button onclick="stopSpeaking()" id="stopButton" disabled>Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAudio = null;
+        let lastAudioFile = null;
+
+        window.addEventListener('load', function() {
+            const robot = document.getElementById('robot');
+            robot.classList.add('greeting');
+
+            const bubble = document.createElement('div');
+            bubble.className = 'greeting-bubble';
+            bubble.textContent = 'Hello! I\'m here to help you!';
+            robot.appendChild(bubble);
+
+            setTimeout(() => {
+                robot.classList.remove('greeting');
+                bubble.remove();
+            }, 3000);
+        });
+
+        function toggleRobotTalking(talking) {
+            const robot = document.getElementById('robot');
+            if (talking) {
+                robot.classList.add('talking');
+            } else {
+                robot.classList.remove('talking');
+            }
+        }
+
+        function updateButtons(isPlaying) {
+            document.getElementById('playButton').disabled = !lastAudioFile || isPlaying;
+            document.getElementById('stopButton').disabled = !isPlaying;
+        }
+
+        function stopSpeaking() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                toggleRobotTalking(false);
+                updateButtons(false);
+            }
+        }
+
+        function clearChat() {
+            stopSpeaking();
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML = ''; // Clear all messages
+            lastAudioFile = null;
+            updateButtons(false);
+        }
+
+        function playLastResponse() {
+            if (lastAudioFile) {
+                playAudio(lastAudioFile);
+            }
+        }
+
+        function playAudio(filename) {
+            stopSpeaking();
+
+            const audio = new Audio(`/audio/${filename}`);
+            currentAudio = audio;
+
+            audio.onplay = () => {
+                toggleRobotTalking(true);
+                updateButtons(true);
+            };
+
+            audio.onended = () => {
+                toggleRobotTalking(false);
+                updateButtons(false);
+                currentAudio = null;
+            };
+
+            audio.play().catch(error => {
+                console.error('Error playing audio:', error);
+                toggleRobotTalking(false);
+                updateButtons(false);
+            });
+        }
+
+        function addMessage(type, content) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className =` message ${type}`;
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${content}
+                </div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+
+            if (message) {
+                stopSpeaking();
+                addMessage('user', message);
+                input.value = '';
+
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_input: message,
+                            user_id: "default"  // Use a default user ID for simplicity
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.response) {
+                        const robot = document.getElementById('robot');
+                        robot.style.transform = 'translateX(-20px)';
+
+                        addMessage('assistant', data.response);
+                        lastAudioFile = data.audio_file;
+                        updateButtons(false);
+                        playAudio(data.audio_file);
+
+                        setTimeout(() => {
+                            robot.style.transform = 'translateX(0)';
+                        }, 300);
+                    } else {
+                        addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+                }
+            }
+        }
+
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function startVoiceInput() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('userInput').value = transcript;
+                sendMessage();
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+            };
+
+            recognition.start();
+        }
+
+        async function handleImageUpload() {
+            const input = document.getElementById('imageInput');
+            const files = input.files;
+
+            if (files.length > 0) {
+                const userInput = prompt("Please enter a question related to the images:");
+                if (!userInput) {
+                    alert("Question is required to proceed.");
+                    return;
+                }
+
+                const formData = new FormData();
+                for (const file of files) {
+                    formData.append('image', file);
+                }
+                formData.append('user_input', userInput); // Add user input to form data
+
+                try {
+                    const response = await fetch('/upload_image', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        addMessage('assistant', data.response);
+                        lastAudioFile = data.audio_file;
+                        playAudio(data.audio_file);
+                    } else {
+                        addMessage('assistant', 'Failed to upload images.');
+                    }
+                } catch (error) {
+                    console.error('Error uploading images:', error);
+                    addMessage('assistant', 'Error uploading images.');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
